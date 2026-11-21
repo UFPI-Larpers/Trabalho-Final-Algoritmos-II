@@ -50,7 +50,7 @@ void contarOcorrencias(char *string){
     
     int ocorrencias['z'];
 
-    for(char j = 0; j < 'z'; j++){
+    for(char j = 'A'; j < 'z'; j++){
         *(ocorrencias + j) = 0;
     }
 
