@@ -70,7 +70,7 @@ void lerRegistros (registro *vetorRegistros, int tam, Amigo *ponteiro) {
             } else {
                 do {
                     printf ("\n\nNão tem como esse registro ser do tipo \"R\" pois Sara só pode receber uma única mensagem por vez e por pessoa");
-                } //erro aqui, falta a condição do while
+                }
             }
         }
         else if ((vetorRegistros + i)->tipoRegistro == 'E') {
