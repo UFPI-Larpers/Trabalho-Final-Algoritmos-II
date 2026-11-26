@@ -28,7 +28,7 @@ void erro (registro *vetorRegistros, int indice, Amigo *ponteiro) {
 
     if ((vetorRegistros + indice)->tipoRegistro == 'R') {
         do {
-            printf ("\n\nNão tem como esse registro ser do tipo \"R\" pois Sara só pode receber uma única mensagem por vez e por pessoa, até que ela responda essa mensagem.\nCorrija e tente novamente:");
+            printf ("\n\nNão tem como esse registro ser do tipo \"R\" do mesmmo amigo, pois Sara só pode receber uma única mensagem por vez e por pessoa, até que ela responda essa mensagem.\nCorrija e tente novamente:");
             printf ("\nQual o número referente ao amigo da Sara? ");
             scanf ("%d", &(vetorRegistros + indice)->amigo);
             printf ("\n\nQual o tipo do %d° registro?\n\nR - Recebido por Sara,\nE - Enviado por Sara\n. ", indice + 1);
@@ -75,49 +75,52 @@ void lerProcessarRegistros (registro *vetorRegistros, int tam, Amigo *ponteiro) 
                 printf ("\nQual o tempo em segundos entre os dois eventos anteriores?");
                 scanf ("%d", &(vetorRegistros + i)->tempo);
                 somatorioTempo += (vetorRegistros + i)->tempo;
+                i++;
             }
             else {
                 somatorioTempo++;
             }
         }
 
-        printf ("\nQual o número referente ao amigo da Sara? ");
-        scanf ("%d", &(vetorRegistros + i)->amigo);
-        printf ("\nQual o tipo do %d° registro?\n\nR - Recebido por Sara,\nE - Enviado por Sara\n. ", i + 1);
-        limparBuffer ();
-        scanf (" %c", &(vetorRegistros + i)->tipoRegistro);
+        if (i < tam) {
+            printf ("\nQual o número referente ao amigo de Sara? ");
+            scanf ("%d", &(vetorRegistros + i)->amigo);
+            printf ("\nQual o tipo do %d° registro?\n\nR - Recebido por Sara,\nE - Enviado por Sara.\n ", i + 1);
+            limparBuffer ();
+            scanf (" %c", &(vetorRegistros + i)->tipoRegistro);
 
-        int idAtual = (vetorRegistros + i)->amigo;
-        int idx = buscarIndiceAmigo(ponteiro, idAtual); // Busca se essa pessoa já existe na lista, se existir retorna o indice, se não existir ainda ele preenche as informação da lista final.
+            int idAtual = (vetorRegistros + i)->amigo;
+            int idx = buscarIndiceAmigo(ponteiro, idAtual); // Busca se essa pessoa já existe na lista, se existir retorna o indice, se não existir ainda ele preenche as informação da lista final.
 
-        if ((vetorRegistros + i)->tipoRegistro == 'R') {
-            if (idx != -1 && (ponteiro + idx)->flagEnviado == 0) { // Se já existe e Sara ainda não envinou (não respondeu o amigo) - Mostra erro pq significa que Sara recebeu duas mensagens consecutivas da mensma pessoa, o que não cabe nas restrições.
-                erro (vetorRegistros, i, ponteiro);
-                idAtual = (vetorRegistros + i)->amigo;
-                idx = buscarIndiceAmigo(ponteiro, idAtual);
+            if ((vetorRegistros + i)->tipoRegistro == 'R') {
+                if (idx != -1 && (ponteiro + idx)->flagEnviado == 0) { // Se já existe e Sara ainda não envinou (não respondeu o amigo) - Mostra erro pq significa que Sara recebeu duas mensagens consecutivas da mensma pessoa, o que não cabe nas restrições.
+                    erro (vetorRegistros, i, ponteiro);
+                    idAtual = (vetorRegistros + i)->amigo;
+                    idx = buscarIndiceAmigo(ponteiro, idAtual);
+                }
+                if (idx == -1) { // Se o amigo ainda não existia - SAra ainda não tinha recebido mensagem desse amigo
+                    (ponteiro + j)->idAmigo = idAtual; // Armazena o amigo no BD.
+                    (ponteiro + j)->tempoRespostaTotal = 0; // Inicia o tempo resposta total do amigo como 0.
+                    (ponteiro + j)->tempoRecebimento = somatorioTempo; // Armazena o ponto de recebimento
+                    (ponteiro + j)->flagEnviado = 0; // falg q garante que o amigo no id atual ainda não foi respondido.
+                    j++;
+                } else if (idx != -1 && (ponteiro + idx)->flagEnviado == 1) { // Se já existia atualiza para o próximo tempo resposta desse amigo e flagEnviado = 1 (Sara já) respondeu.
+                    (ponteiro + idx)->tempoRecebimento = somatorioTempo;
+                    (ponteiro + idx)->flagEnviado = 0;
+                }
             }
-            if (idx == -1) { // Se o amigo ainda não existia - SAra ainda não tinha recebido mensagem desse amigo
-                (ponteiro + j)->idAmigo = idAtual; // Armazena o amigo no BD.
-                (ponteiro + j)->tempoRespostaTotal = 0; // Inicia o tempo resposta total do amigo como 0.
-                (ponteiro + j)->tempoRecebimento = somatorioTempo; // Armazena o ponto de recebimento
-                (ponteiro + j)->flagEnviado = 0; // falg q garante que o amigo no id atual ainda não foi respondido.
-                j++;
-            } else if (idx != -1 && (ponteiro + idx)->flagEnviado == 1) { // Se já existia atualiza para o próximo tempo resposta desse amigo.
-                (ponteiro + idx)->tempoRecebimento = somatorioTempo;
-                (ponteiro + idx)->flagEnviado = 0;
-            }
-        }
 
-        else if ((vetorRegistros + i)->tipoRegistro == 'E') {
-            if (idx == -1 || (ponteiro + idx)->flagEnviado == 1) { // Teste se o amigo ainda não existe ou se o último registro dele for do tipo "E"
-                erro (vetorRegistros, i, ponteiro);
-                idAtual = (vetorRegistros + i)->amigo;
-                idx = buscarIndiceAmigo(ponteiro, idAtual);
-            }
-            int tempoResp = (idx != -1 && (ponteiro + idx)->flagEnviado == 0) ? (somatorioTempo - (ponteiro + idx)->tempoRecebimento) : 0; // Se o amigo já existe e sua flagEnviado vale zero (ainda pode ser respodido) então tem mensagem pra ser respondida, então é feito o calculo e armazenado a diferença entre os pontos no tempo, obetendo a "distância" entre eles.
-            int encontrou = attTempoRespostaTotal (ponteiro, idAtual, tempoResp); // busca o amigo, atualiza o tempo resposta total e atualiza a flagEnviado.
-            if (encontrou && (ponteiro + idx)->flagEnviado == 0) {
-                (ponteiro + idx)->flagEnviado = 1;
+            else if ((vetorRegistros + i)->tipoRegistro == 'E') {
+                if (idx == -1 || (ponteiro + idx)->flagEnviado == 1) { // Teste se o amigo ainda não existe ou se o último registro dele for do tipo "E"
+                    erro (vetorRegistros, i, ponteiro);
+                    idAtual = (vetorRegistros + i)->amigo;
+                    idx = buscarIndiceAmigo(ponteiro, idAtual);
+                }
+                int tempoResp = (idx != -1 && (ponteiro + idx)->flagEnviado == 0) ? (somatorioTempo - (ponteiro + idx)->tempoRecebimento) : 0; // Se o amigo já existe e sua flagEnviado vale zero (ainda pode ser respodido) então tem mensagem pra ser respondida, então é feito o calculo e armazenado a diferença entre os pontos no tempo, obetendo a "distância" entre eles.
+                int encontrou = attTempoRespostaTotal (ponteiro, idAtual, tempoResp); // busca o amigo, atualiza o tempo resposta total e atualiza a flagEnviado.
+                if (encontrou && (ponteiro + idx)->flagEnviado == 0) { // atualiza a flag para enviado = 1.
+                    (ponteiro + idx)->flagEnviado = 1;
+                }
             }
         }
 
@@ -152,7 +155,7 @@ void mostrarTempoRespostaTotal (Amigo *p) {
         if ((p + i)->flagEnviado == 1) {
             printf ("\n%d %d", (p + i)->idAmigo, (p + i)->tempoRespostaTotal);
         }
-        else {
+        else if ((p + i)->flagEnviado == 0){
             printf ("\n%d -1", (p + i)->idAmigo); // Se ao final a flagEnviado desse amigo ainda valer 0, significa que n foi respondido, logo sua saída é '-1'. 
         }
     }
