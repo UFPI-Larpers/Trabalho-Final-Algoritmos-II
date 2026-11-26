@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 
 typedef struct {
     int idAmigo, tempoRespostaTotal, flagEnviado, tempoRecebimento; // flagEnviado serve pra avisar se Sara já respondeu ou não cada amigos
@@ -23,17 +24,29 @@ int buscarIndiceAmigo (Amigo *p, int amigo) { // Função de busca no "banco de 
     return -1; // Se não existir retorna -1 (Sara ainda não recebeu nenhuma mensagem desse amigo).
 }
 
+void maiusculos (char *caractere) {
+    int minusculos['z'];
+
+    for (char i = 'a'; i <= 'z'; i++) {
+        if (*(caractere + 0) == i) {
+            *(caractere + 0) = toupper(*caractere);
+            break;
+        }
+    }
+}
+
 void erro (registro *vetorRegistros, int indice, Amigo *ponteiro) {
     int idx;
 
     if ((vetorRegistros + indice)->tipoRegistro == 'R') {
         do {
-            printf ("\n\nNão tem como esse registro ser do tipo \"R\" do mesmmo amigo, pois Sara só pode receber uma única mensagem por vez e por pessoa, até que ela responda essa mensagem.\nCorrija e tente novamente:");
+            printf ("\n\nSara só pode receber uma única mensagem por vez e por pessoa, até que ela responda a mensagem do amigo %d.\nCorrija e tente novamente:", (vetorRegistros + indice)->amigo);
             printf ("\nQual o número referente ao amigo da Sara? ");
             scanf ("%d", &(vetorRegistros + indice)->amigo);
-            printf ("\n\nQual o tipo do %d° registro?\n\nR - Recebido por Sara,\nE - Enviado por Sara\n. ", indice + 1);
+            printf ("\n\nQual o tipo do %d° registro?\n\nR - Recebido por Sara,\nE - Enviado por Sara.\n ", indice + 1);
             limparBuffer ();
             scanf (" %c", &(vetorRegistros + indice)->tipoRegistro);
+            maiusculos (&(vetorRegistros + indice)->tipoRegistro);
 
             idx = buscarIndiceAmigo(ponteiro, (vetorRegistros + indice)->amigo);
         } while (((vetorRegistros + indice)->tipoRegistro == 'R' && idx != -1 && (ponteiro + idx)->flagEnviado == 0) ||
@@ -41,12 +54,13 @@ void erro (registro *vetorRegistros, int indice, Amigo *ponteiro) {
     }
     else if ((vetorRegistros + indice)->tipoRegistro == 'E') {
         do {
-            printf ("\n\nEsse registro não pode ser do tipo \"E\". Sara só pode responder mensagens se já recebeu uma desse amigo (%d) e ainda não respondeu.\nCorrija e tente novamente:", (vetorRegistros + indice)->amigo);
+            printf ("\n\nSara só pode responder mensagens se já recebeu uma mensagem desse amigo (%d) e ainda não respondeu.\nCorrija e tente novamente:", (vetorRegistros + indice)->amigo);
             printf ("\nQual o número referente ao amigo da Sara? ");
             scanf ("%d", &(vetorRegistros + indice)->amigo);
-            printf ("\n\nQual o tipo do %d° registro?\n\nR - Recebido por Sara,\nE - Enviado por Sara\n. ", indice + 1);
+            printf ("\n\nQual o tipo do %d° registro?\n\nR - Recebido por Sara,\nE - Enviado por Sara.\n ", indice + 1);
             limparBuffer ();
             scanf (" %c", &(vetorRegistros + indice)->tipoRegistro);
+            maiusculos (&(vetorRegistros + indice)->tipoRegistro);
 
             idx = buscarIndiceAmigo(ponteiro, (vetorRegistros + indice)->amigo);
         } while (((vetorRegistros + indice)->tipoRegistro == 'E' && (idx == -1 || (ponteiro + idx)->flagEnviado == 1)) ||
@@ -69,13 +83,16 @@ void lerProcessarRegistros (registro *vetorRegistros, int tam, Amigo *ponteiro) 
 
     for (i = 0; i < tam; i++) {
         if (i > 0) {
-            printf ("\n\nHá registro de tempo entre esse e o evento anterior?\n\ns - Sim.\nn - Não.\n");
+            printf ("\n\nHá registro de tempo entre esse registro atual (%d°) e o evento anterior (%d°)?\n\nS - Sim.\nN - Não.\n", i + 2, i);
             scanf (" %c", &flagTempo);
-            if (flagTempo == 's') {
+            maiusculos (&flagTempo);
+
+            if (flagTempo == 'S') {
                 printf ("\nQual o tempo em segundos entre os dois eventos anteriores?");
                 scanf ("%d", &(vetorRegistros + i)->tempo);
                 somatorioTempo += (vetorRegistros + i)->tempo;
                 i++;
+                printf ("\n+-----------------------------------------------------------------------------------------------------------------------+");
             }
             else {
                 somatorioTempo++;
@@ -88,6 +105,8 @@ void lerProcessarRegistros (registro *vetorRegistros, int tam, Amigo *ponteiro) 
             printf ("\nQual o tipo do %d° registro?\n\nR - Recebido por Sara,\nE - Enviado por Sara.\n ", i + 1);
             limparBuffer ();
             scanf (" %c", &(vetorRegistros + i)->tipoRegistro);
+            maiusculos(&(vetorRegistros + i)->tipoRegistro);
+            
 
             int idAtual = (vetorRegistros + i)->amigo;
             int idx = buscarIndiceAmigo(ponteiro, idAtual); // Busca se essa pessoa já existe na lista, se existir retorna o indice, se não existir ainda ele preenche as informação da lista final.
